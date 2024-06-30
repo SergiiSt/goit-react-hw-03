@@ -4,13 +4,21 @@ import ContactList from './components/ContactList/ContactList';
 import SearchBox from './components/SearchBox/SearchBox';
 import ContactForm from './components/ContactForm/ContactForm';
 import initialContacts from '../contacts.json';
+import css from './App.module.css';
 
 function App() {
-  const [contacts, setContacts] = useState(initialContacts);
+  const [contacts, setContacts] = useState(() => {
+    const savedContacts = localStorage.getItem('contacts');
+    return savedContacts ? JSON.parse(savedContacts) : initialContacts;
+  });
   const [filter, setFilter] = useState('');
 
   const addContact = newContact => {
-    setContacts(prevContacts => [...prevContacts, newContact]);
+    setContacts(prevContacts => {
+      const updatedContacts = [...prevContacts, newContact];
+      localStorage.setItem('contacts', JSON.stringify(updatedContacts));
+      return updatedContacts;
+    });
   };
 
   const handleFilterChange = newFilter => {
@@ -21,18 +29,22 @@ function App() {
     contact.name.toLowerCase().includes(filter.toLowerCase())
   );
 
-  const deleteContact = (contactId) => {
-   setContacts(prevContacts => {
-    return prevContacts.filter(contact => contact.id !== contactId)
-   })
+  const deleteContact = contactId => {
+    setContacts(prevContacts => {
+      const updatedContacts = prevContacts.filter(
+        contact => contact.id !== contactId
+      );
+      localStorage.setItem('contacts', JSON.stringify(updatedContacts));
+      return updatedContacts;
+    });
   };
 
   return (
     <div>
-      <h1>Phonebook</h1>
+      <h1 className={css.pageTitle}>Phonebook</h1>
       <ContactForm onAdd={addContact} />
       <SearchBox value={filter} onChange={handleFilterChange} />
-      <ContactList contacts={filteredContacts} onDelete={deleteContact}/>
+      <ContactList contacts={filteredContacts} onDelete={deleteContact} />
     </div>
   );
 }
